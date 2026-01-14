@@ -128,7 +128,7 @@ Skills disponíveis:
 Selecione até {limit} skills mais relevantes."""
         
         try:
-            response = self.llm.generate_with_system_prompt(
+            response = await self.llm.generate_with_system_prompt(
                 system_prompt, user_message, temperature=0.3
             )
             
