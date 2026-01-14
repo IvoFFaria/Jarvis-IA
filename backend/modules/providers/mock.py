@@ -1,13 +1,14 @@
-"""Mock LLM Interface para testes sem saldo."""
+"""Mock LLM Provider para testes sem saldo."""
 import logging
 from typing import Dict, Any, Optional, List
 import json
+from .base import BaseLLMProvider
 
 logger = logging.getLogger(__name__)
 
 
-class MockLLMInterface:
-    """Interface mock para testes sem chamar LLM real."""
+class MockProvider(BaseLLMProvider):
+    """Provider mock para testes sem chamar LLM real."""
     
     def __init__(self):
         """Inicializa mock interface."""
