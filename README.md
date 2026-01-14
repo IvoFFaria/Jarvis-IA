@@ -154,6 +154,39 @@ GET /api/approvals?user_id=default_user
 GET /api/health
 ```
 
+## 🧪 Modo Mock (Testes Sem Saldo)
+
+O sistema suporta **modo mock** para testes sem necessidade de saldo LLM.
+
+### Configurar Modo
+
+Editar `/app/backend/.env`:
+```bash
+LLM_MODE="mock"  # Testes (gratuito)
+# OU
+LLM_MODE="real"  # Produção (GPT-5.2)
+```
+
+Reiniciar:
+```bash
+sudo supervisorctl restart backend
+```
+
+### Verificar Modo Atual
+```bash
+curl http://localhost:8001/api/debug/mode
+```
+
+### Executar Testes
+```bash
+cd /app/backend
+python3 -m pytest tests/ -v
+```
+
+**Veja [TESTING.md](TESTING.md) para detalhes completos.**
+
+---
+
 ## 🔧 Tecnologias
 
 - **Frontend:** React 19, TailwindCSS, Axios
