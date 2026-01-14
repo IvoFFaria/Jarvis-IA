@@ -23,8 +23,7 @@ from models.skill import (
 from models.approval import Approval, ApprovalRequest
 
 # Import modules
-from modules.llm_interface import LLMInterface
-from modules.llm_interface_mock import MockLLMInterface
+from modules.providers.factory import create_llm_provider
 from modules.memory import MemoryManager
 from modules.skills import SkillManager
 
@@ -47,18 +46,22 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-# Initialize LLM (real or mock based on LLM_MODE)
-llm_mode = os.environ.get('LLM_MODE', 'mock')
-if llm_mode == 'real':
-    llm_interface = LLMInterface()
-    logger.info("Using REAL LLM (GPT-5.2)")
-else:
-    llm_interface = MockLLMInterface()
-    logger.info("Using MOCK LLM (test mode)")
+# Initialize LLM provider (será criado na primeira request)
+llm_interface = None
+memory_manager = None
+skill_manager = None
 
-# Initialize managers
-memory_manager = MemoryManager(db, llm_interface)
-skill_manager = SkillManager(db, llm_interface)
+
+async def get_llm_interface():
+    """Get or create LLM interface (lazy initialization)."""
+    global llm_interface, memory_manager, skill_manager
+    
+    if llm_interface is None:
+        llm_interface = await create_llm_provider()
+        memory_manager = MemoryManager(db, llm_interface)
+        skill_manager = SkillManager(db, llm_interface)
+    
+    return llm_interface
 
 # Create the main app
 app = FastAPI(title="Jarvis AI System", version="1.0.0")
