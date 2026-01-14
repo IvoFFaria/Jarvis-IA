@@ -231,7 +231,7 @@ Lembre-se:
         user_message = f"Utilizador: {message}"
         
         # 6. Chamar LLM
-        response = llm_interface.generate_with_system_prompt(
+        response = await llm_interface.generate_with_system_prompt(
             system_prompt, user_message, temperature=0.7
         )
         
