@@ -200,6 +200,7 @@ async def chat(
     message: str,
     user_id: str = "default_user",
     permission_level: str = "EXECUTE_APPROVED",
+    source: str = "text",  # "text" ou "voice"
 ):
     """
     Chat com IA usando skills e memórias.
@@ -208,8 +209,12 @@ async def chat(
         message: Mensagem do utilizador
         user_id: ID do utilizador
         permission_level: READ_ONLY, DRAFT_ONLY, EXECUTE_APPROVED
+        source: "text" ou "voice"
     """
     try:
+        # Ensure LLM initialized
+        await get_llm_interface()
+        
         # 1. Converter permission level
         perm_level = PermissionLevel(permission_level)
         
