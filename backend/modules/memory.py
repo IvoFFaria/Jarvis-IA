@@ -30,6 +30,12 @@ class MemoryManager:
     ) -> MemoryProcessResponse:
         """Processa conversação e extrai memórias.
         
+        Regras para source="voice":
+        - Por padrão vai para HOT
+        - Só promove para COLD se:
+          a) Preferência estável ("sempre", "prefiro", "a partir de agora")
+          b) Procedimento repetível (cria skill)
+        
         Args:
             request: Request com conversação
         
@@ -43,8 +49,19 @@ class MemoryManager:
         security_prompt = SystemPromptManager.get_security_prompt()
         memory_prompt = SystemPromptManager.get_memory_manager_prompt()
         
-        # 3. Chamar LLM
-        system_prompt = f"{security_prompt}\n\n{memory_prompt}"
+        # 3. Adicionar contexto de source
+        source = request.source or "text"
+        source_instruction = ""
+        if source == "voice":
+            source_instruction = """
+IMPORTANTE: Esta mensagem veio de VOZ.
+- Por padrão, crie HOT memory (contexto temporário).
+- Só crie COLD se houver preferências ESTÁVEIS ("sempre", "prefiro", "a partir de agora").
+- Se for procedimento repetível, crie SKILL.
+"""
+        
+        # 4. Chamar LLM
+        system_prompt = f"{security_prompt}\n\n{memory_prompt}\n\n{source_instruction}"
         user_message = f"""Analise esta conversação e extraia informações relevantes:
 
 {request.conversation_chunk}
@@ -58,7 +75,7 @@ Retorne JSON com memories (hot/cold/archive) e skills."""
             
             logger.info(f"LLM response received: {response[:200]}")
             
-            # 4. Extrair JSON
+            # 5. Extrair JSON
             data = self.llm.extract_json_from_response(response)
             if not data:
                 logger.warning("Não foi possível extrair JSON da resposta do LLM")
