@@ -78,6 +78,7 @@ api_router = APIRouter(prefix="/api")
 async def process_memory(request: MemoryProcessRequest):
     """Processa conversação e extrai memórias."""
     try:
+        await get_llm_interface()  # Ensure initialized
         response = await memory_manager.process_conversation(request)
         return response
     except Exception as e:
