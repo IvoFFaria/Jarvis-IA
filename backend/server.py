@@ -358,6 +358,20 @@ async def health_check():
         }
 
 
+@api_router.get("/debug/mode")
+async def debug_mode():
+    """Debug: mostra modo LLM e configurações (READ ONLY)."""
+    return {
+        "llm_mode": os.environ.get('LLM_MODE', 'mock'),
+        "default_permission_level": "EXECUTE_APPROVED",
+        "allowed_actions_count": len(__import__('core.security_config', fromlist=['ALLOWED_ACTIONS']).ALLOWED_ACTIONS),
+        "blocked_actions_count": len(__import__('core.security_config', fromlist=['BLOCKED_ACTIONS']).BLOCKED_ACTIONS),
+        "background_workers": "DISABLED",
+        "auto_replication": "DISABLED",
+        "network_egress": "RESTRICTED",
+    }
+
+
 # Include router
 app.include_router(api_router)
 
