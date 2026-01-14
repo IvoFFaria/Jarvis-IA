@@ -11,8 +11,9 @@ class MockProvider(BaseLLMProvider):
     """Provider mock para testes sem chamar LLM real."""
     
     def __init__(self):
-        """Inicializa mock interface."""
-        logger.info("MockLLMInterface inicializada (modo de testes)")
+        """Inicializa mock provider."""
+        super().__init__()
+        logger.info("MockProvider inicializado (modo de testes)")
     
     async def chat_completion_async(
         self,
