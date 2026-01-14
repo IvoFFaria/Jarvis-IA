@@ -56,11 +56,15 @@ Retorne JSON com memories (hot/cold/archive) e skills."""
                 system_prompt, user_message, temperature=0.3
             )
             
+            logger.info(f"LLM response received: {response[:200]}")
+            
             # 4. Extrair JSON
             data = self.llm.extract_json_from_response(response)
             if not data:
                 logger.warning("Não foi possível extrair JSON da resposta do LLM")
                 return MemoryProcessResponse(summary="Nenhuma memória extraída")
+            
+            logger.info(f"Extracted data: {data}")
             
             # 5. Persistir memórias
             hot_created = await self._persist_hot_memories(
