@@ -24,6 +24,7 @@ from models.approval import Approval, ApprovalRequest
 
 # Import modules
 from modules.llm_interface import LLMInterface
+from modules.llm_interface_mock import MockLLMInterface
 from modules.memory import MemoryManager
 from modules.skills import SkillManager
 
@@ -39,8 +40,16 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
-# Initialize LLM and managers
-llm_interface = LLMInterface()
+# Initialize LLM (real or mock based on LLM_MODE)
+llm_mode = os.environ.get('LLM_MODE', 'mock')
+if llm_mode == 'real':
+    llm_interface = LLMInterface()
+    logger.info("Using REAL LLM (GPT-5.2)")
+else:
+    llm_interface = MockLLMInterface()
+    logger.info("Using MOCK LLM (test mode)")
+
+# Initialize managers
 memory_manager = MemoryManager(db, llm_interface)
 skill_manager = SkillManager(db, llm_interface)
 
