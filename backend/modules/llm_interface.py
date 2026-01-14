@@ -2,7 +2,9 @@
 import os
 import logging
 from typing import Dict, Any, Optional, List
-from emergentintegrations import OpenAI
+import asyncio
+from emergentintegrations.llm.chat import LlmChat, UserMessage
+import uuid
 
 logger = logging.getLogger(__name__)
 
@@ -11,54 +13,76 @@ class LLMInterface:
     """Interface para comunicação com LLM."""
     
     def __init__(self):
-        """Inicializa cliente OpenAI com Emergent Universal Key."""
+        """Inicializa cliente LLM com Emergent Universal Key."""
         self.api_key = os.environ.get("EMERGENT_LLM_KEY")
         if not self.api_key:
             raise ValueError("EMERGENT_LLM_KEY não encontrada nas variáveis de ambiente")
         
-        self.client = OpenAI(api_key=self.api_key)
+        self.provider = "openai"
         self.model = "gpt-5.2"
-        logger.info(f"LLM Interface inicializada com modelo {self.model}")
+        logger.info(f"LLM Interface inicializada com {self.provider}/{self.model}")
     
-    def chat_completion(
+    async def chat_completion_async(
         self,
         messages: List[Dict[str, str]],
         temperature: float = 0.7,
-        max_tokens: Optional[int] = None,
     ) -> str:
-        """Envia mensagens para o LLM e retorna resposta.
+        """Envia mensagens para o LLM e retorna resposta (async).
         
         Args:
             messages: Lista de mensagens [{"role": "user", "content": "..."}]
             temperature: Criatividade (0.0 a 1.0)
-            max_tokens: Máximo de tokens na resposta
         
         Returns:
             Resposta do LLM
         """
         try:
-            response = self.client.chat.completions.create(
-                model=self.model,
-                messages=messages,
-                temperature=temperature,
-                max_tokens=max_tokens,
-            )
+            # Extrair system message e user messages
+            system_message = ""
+            user_messages = []
             
-            content = response.choices[0].message.content
-            logger.info(f"LLM response received ({len(content)} chars)")
-            return content
+            for msg in messages:
+                if msg["role"] == "system":
+                    system_message = msg["content"]
+                elif msg["role"] == "user":
+                    user_messages.append(msg["content"])
+            
+            # Criar session única
+            session_id = str(uuid.uuid4())
+            
+            # Inicializar chat
+            chat = LlmChat(
+                api_key=self.api_key,
+                session_id=session_id,
+                system_message=system_message or "You are a helpful assistant.",
+            ).with_model(self.provider, self.model)
+            
+            # Enviar última mensagem do usuário
+            user_msg = UserMessage(text=user_messages[-1] if user_messages else "")
+            response = await chat.send_message(user_msg)
+            
+            logger.info(f"LLM response received ({len(response)} chars)")
+            return response
         
         except Exception as e:
             logger.error(f"Erro ao chamar LLM: {e}")
             raise
     
-    def generate_with_system_prompt(
+    def chat_completion(
+        self,
+        messages: List[Dict[str, str]],
+        temperature: float = 0.7,
+    ) -> str:
+        """Versão síncrona do chat_completion."""
+        return asyncio.run(self.chat_completion_async(messages, temperature))
+    
+    async def generate_with_system_prompt_async(
         self,
         system_prompt: str,
         user_message: str,
         temperature: float = 0.7,
     ) -> str:
-        """Gera resposta com system prompt customizado.
+        """Gera resposta com system prompt customizado (async).
         
         Args:
             system_prompt: Prompt do sistema
@@ -73,7 +97,16 @@ class LLMInterface:
             {"role": "user", "content": user_message},
         ]
         
-        return self.chat_completion(messages, temperature=temperature)
+        return await self.chat_completion_async(messages, temperature=temperature)
+    
+    def generate_with_system_prompt(
+        self,
+        system_prompt: str,
+        user_message: str,
+        temperature: float = 0.7,
+    ) -> str:
+        """Versão síncrona do generate_with_system_prompt."""
+        return asyncio.run(self.generate_with_system_prompt_async(system_prompt, user_message, temperature))
     
     def extract_json_from_response(self, response: str) -> Optional[Dict[str, Any]]:
         """Extrai JSON da resposta do LLM.
