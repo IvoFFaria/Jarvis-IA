@@ -58,12 +58,14 @@ class MockLLMInterface:
         Returns:
             Resposta JSON mock para memory processing
         """
+        logger.info(f"Mock recebeu - System: {system_prompt[:100]}... User: {user_message[:100]}...")
+        
         # Detectar se é memory manager ou skill retriever
-        if "memory" in user_message.lower() and ("analise" in user_message.lower() or "extraia" in user_message.lower()):
+        if "Analise esta conversação" in user_message:
             # Mock response para memory processing
             logger.info("Mock: Gerando resposta de memory processing")
             return self._mock_memory_response(user_message)
-        elif "skill" in user_message.lower() or "Skill Retriever" in system_prompt:
+        elif "Selecione até" in user_message or "skill" in user_message.lower():
             # Mock response para skill retrieval
             logger.info("Mock: Gerando resposta de skill retrieval")
             return self._mock_skill_retrieval()
