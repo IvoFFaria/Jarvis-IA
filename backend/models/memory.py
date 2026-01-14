@@ -75,6 +75,7 @@ class MemoryProcessRequest(BaseModel):
     user_id: str
     conversation_chunk: str
     context: Optional[dict] = None
+    source: Optional[str] = "text"  # "text" ou "voice"
 
 
 class MemoryProcessResponse(BaseModel):
