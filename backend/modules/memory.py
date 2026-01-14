@@ -52,7 +52,7 @@ class MemoryManager:
 Retorne JSON com memories (hot/cold/archive) e skills."""
         
         try:
-            response = self.llm.generate_with_system_prompt(
+            response = await self.llm.generate_with_system_prompt(
                 system_prompt, user_message, temperature=0.3
             )
             
