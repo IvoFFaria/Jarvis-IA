@@ -86,22 +86,19 @@ class MockLLMInterface:
             "summary": "Mock: Processamento de memória concluído"
         }
         
-        # Se mensagem contém informações, criar memórias mock
-        if len(user_message) > 20:
-            # HOT memory mock
-            response["memories"]["hot"].append({
-                "key": "mock_hot_context",
-                "value": "Contexto de teste",
-                "tags": ["mock", "test"],
-                "expires_in_days": 7
-            })
-            
-            # COLD memory mock
-            response["memories"]["cold"].append({
-                "key": "mock_cold_preference",
-                "value": "Preferência de teste",
-                "tags": ["mock", "preference"]
-            })
+        # SEMPRE criar pelo menos 1 HOT e 1 COLD para testes
+        response["memories"]["hot"].append({
+            "key": "mock_hot_context",
+            "value": f"Contexto: {user_message[:50]}...",
+            "tags": ["mock", "test", "context"],
+            "expires_in_days": 7
+        })
+        
+        response["memories"]["cold"].append({
+            "key": "mock_cold_preference",
+            "value": "Modo mock ativo",
+            "tags": ["mock", "preference", "system"]
+        })
         
         # Se contém palavra "procedimento" ou "sempre", criar skill mock
         if "procedimento" in user_message.lower() or "sempre" in user_message.lower():
@@ -115,6 +112,9 @@ class MockLLMInterface:
                 ],
                 "tags": ["mock", "test"]
             })
+            response["summary"] = "Mock: Criadas 1 HOT, 1 COLD e 1 skill"
+        else:
+            response["summary"] = "Mock: Criadas 1 HOT e 1 COLD"
         
         return json.dumps(response)
     
