@@ -68,21 +68,13 @@ class LLMInterface:
             logger.error(f"Erro ao chamar LLM: {e}")
             raise
     
-    def chat_completion(
-        self,
-        messages: List[Dict[str, str]],
-        temperature: float = 0.7,
-    ) -> str:
-        """Versão síncrona do chat_completion."""
-        return asyncio.run(self.chat_completion_async(messages, temperature))
-    
-    async def generate_with_system_prompt_async(
+    async def generate_with_system_prompt(
         self,
         system_prompt: str,
         user_message: str,
         temperature: float = 0.7,
     ) -> str:
-        """Gera resposta com system prompt customizado (async).
+        """Gera resposta com system prompt customizado.
         
         Args:
             system_prompt: Prompt do sistema
@@ -98,15 +90,6 @@ class LLMInterface:
         ]
         
         return await self.chat_completion_async(messages, temperature=temperature)
-    
-    def generate_with_system_prompt(
-        self,
-        system_prompt: str,
-        user_message: str,
-        temperature: float = 0.7,
-    ) -> str:
-        """Versão síncrona do generate_with_system_prompt."""
-        return asyncio.run(self.generate_with_system_prompt_async(system_prompt, user_message, temperature))
     
     def extract_json_from_response(self, response: str) -> Optional[Dict[str, Any]]:
         """Extrai JSON da resposta do LLM.
